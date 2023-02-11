@@ -1,4 +1,4 @@
-# CSCI-566 Assignment 1
+# CSCI-566 Assignment 1 Emanuel Tesfa
 
 ## The objectives of this assignment
 * Implement the forward and backward passes as well as the neural network training procedure
