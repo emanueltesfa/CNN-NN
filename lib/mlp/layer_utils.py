@@ -111,12 +111,15 @@ class flatten(object):
 
     def forward(self, feat):
         output = None
+        print("flatten foward pass ")
         #############################################################################
         # TODO: Implement the forward pass of a flatten layer.                      #
         # You need to reshape (flatten) the input features.                         #
         # Store the results in the variable self.meta provided above.               #
         #############################################################################
-        pass
+        output = feat.reshape(3, -1)
+        print((output.shape))
+        
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -165,14 +168,19 @@ class fc(object):
         self.meta = None
 
     def forward(self, feat):
-        output = None
+        output = None        
         assert len(feat.shape) == 2 and feat.shape[-1] == self.input_dim, \
             "But got {} and {}".format(feat.shape, self.input_dim)
         #############################################################################
         # TODO: Implement the forward pass of a single fully connected layer.       #
         # Store the results in the variable output provided above.                  #
         #############################################################################
-        pass
+        print("features shape is: ", len(feat.shape))
+        #print(self.input_dim)
+        print((self.params['fc_test_w']).shape)
+        output = feat @ self.params['fc_test_w']
+        print(output.shape)
+
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
