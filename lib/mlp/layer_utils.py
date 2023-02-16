@@ -111,14 +111,13 @@ class flatten(object):
 
     def forward(self, feat):
         output = None
-        print("flatten foward pass ")
         #############################################################################
         # TODO: Implement the forward pass of a flatten layer.                      #
         # You need to reshape (flatten) the input features.                         #
         # Store the results in the variable self.meta provided above.               #
         #############################################################################
-        output = feat.reshape(3, -1)
-        print((output.shape))
+        output = feat.reshape(feat.shape[0], -1)
+        #print((output.shape))
         
         #############################################################################
         #                             END OF YOUR CODE                              #
@@ -136,7 +135,7 @@ class flatten(object):
         # You need to reshape (flatten) the input gradients and return.             #
         # Store the results in the variable dfeat provided above.                   #
         #############################################################################
-        pass
+        dfeat = dprev.reshape(feat.shape[0], -1)
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -168,18 +167,19 @@ class fc(object):
         self.meta = None
 
     def forward(self, feat):
-        output = None        
+        output = None
         assert len(feat.shape) == 2 and feat.shape[-1] == self.input_dim, \
             "But got {} and {}".format(feat.shape, self.input_dim)
         #############################################################################
         # TODO: Implement the forward pass of a single fully connected layer.       #
         # Store the results in the variable output provided above.                  #
         #############################################################################
-        print("features shape is: ", len(feat.shape))
-        #print(self.input_dim)
-        print((self.params['fc_test_w']).shape)
-        output = feat @ self.params['fc_test_w']
-        print(output.shape)
+        
+        # print("features shape is: ", len(feat.shape))
+        # print(self.input_dim)
+        # print((self.params['fc_test_w']).shape)
+        output = feat @ self.params['fc_test_w'] + self.params['fc_test_b']
+        # print(output.shape)
 
         #############################################################################
         #                             END OF YOUR CODE                              #
@@ -202,7 +202,21 @@ class fc(object):
         # corresponding name.                                                       #
         # Store the output gradients in the variable dfeat provided above.          #
         #############################################################################
-        pass
+        print('backward of fcl')
+        """
+        NEEDS 
+            input into that layer
+            deriv of wieghts
+            deriv of bias v
+            store in grad[w]
+                     grad[b]
+                     output = 
+        """
+        self.grads[self.b_name] = dprev
+        self.grads[self.w_name] = (dprev @ feat).T
+        print(self.params[self.w_name].shape, dprev.shape)
+        dfeat = dprev @ (self.params[self.w_name]).T
+
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
