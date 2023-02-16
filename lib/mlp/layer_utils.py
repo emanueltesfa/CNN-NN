@@ -62,7 +62,7 @@ class sequential(object):
         for layer in self.layers:
             for n, v in layer.grads.items():
                 self.grads[n] = v
-    
+
     def apply_l1_regularization(self, lam):
         """
         Gather gradients for L1 regularization to every submodule
@@ -72,7 +72,7 @@ class sequential(object):
                 ######## TODO ########
                 pass
                 ######## END  ########
-    
+
     def apply_l2_regularization(self, lam):
         """
         Gather gradients for L2 regularization to every submodule
@@ -82,7 +82,6 @@ class sequential(object):
                 ######## TODO ########
                 pass
                 ######## END  ########
-
 
     def load(self, pretrained):
         """
@@ -94,7 +93,8 @@ class sequential(object):
             for n, v in layer.params.items():
                 if n in pretrained.keys():
                     layer.params[n] = pretrained[n].copy()
-                    print ("Loading Params: {} Shape: {}".format(n, layer.params[n].shape))
+                    print("Loading Params: {} Shape: {}".format(
+                        n, layer.params[n].shape))
 
 
 class flatten(object):
@@ -117,8 +117,8 @@ class flatten(object):
         # Store the results in the variable self.meta provided above.               #
         #############################################################################
         output = feat.reshape(feat.shape[0], -1)
-        #print((output.shape))
-        
+        # print((output.shape))
+
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -128,7 +128,8 @@ class flatten(object):
     def backward(self, dprev):
         feat = self.meta
         if feat is None:
-            raise ValueError("No forward function called before for this module!")
+            raise ValueError(
+                "No forward function called before for this module!")
         dfeat = None
         #############################################################################
         # TODO: Implement the backward pass of a flatten layer.                     #
@@ -160,7 +161,8 @@ class fc(object):
         self.output_dim = output_dim
         self.params = {}
         self.grads = {}
-        self.params[self.w_name] = init_scale * np.random.randn(input_dim, output_dim)
+        self.params[self.w_name] = init_scale * \
+            np.random.randn(input_dim, output_dim)
         self.params[self.b_name] = np.zeros(output_dim)
         self.grads[self.w_name] = None
         self.grads[self.b_name] = None
@@ -174,7 +176,7 @@ class fc(object):
         # TODO: Implement the forward pass of a single fully connected layer.       #
         # Store the results in the variable output provided above.                  #
         #############################################################################
-        
+
         # print("features shape is: ", len(feat.shape))
         # print(self.input_dim)
         # print((self.params['fc_test_w']).shape)
@@ -190,7 +192,8 @@ class fc(object):
     def backward(self, dprev):
         feat = self.meta
         if feat is None:
-            raise ValueError("No forward function called before for this module!")
+            raise ValueError(
+                "No forward function called before for this module!")
         dfeat, self.grads[self.w_name], self.grads[self.b_name] = None, None, None
         assert len(feat.shape) == 2 and feat.shape[-1] == self.input_dim, \
             "But got {} and {}".format(feat.shape, self.input_dim)
@@ -223,6 +226,7 @@ class fc(object):
         self.meta = None
         return dfeat
 
+
 class gelu(object):
     def __init__(self, name="gelu"):
         """
@@ -230,29 +234,32 @@ class gelu(object):
         - meta:  to store the forward pass activations for computing backpropagation
         Notes: params and grads should be just empty dicts here, do not update them
         """
-        self.name = name 
+        self.name = name
         self.params = {}
         self.grads = {}
-        self.meta = None 
-    
+        self.meta = None
+
     def forward(self, feat):
         output = None
         #############################################################################
         # TODO: Implement the forward pass of GeLU                                  #
         # Store the results in the variable output provided above.                  #
         #############################################################################
-        pass
+        temp_div = 2 / np.pi
+        output = (0.5 * feat)(1 +
+                              np.tanh(np.sqrt(temp_div(feat + (0.044715 * (feat*feat*feat))))))
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
         self.meta = feat
         return output
-    
+
     def backward(self, dprev):
         """ You can use the approximate gradient for GeLU activations """
         feat = self.meta
         if feat is None:
-            raise ValueError("No forward function called before for this module!")
+            raise ValueError(
+                "No forward function called before for this module!")
         dfeat = None
         #############################################################################
         # TODO: Implement the backward pass of GeLU                                 #
@@ -264,7 +271,6 @@ class gelu(object):
         #############################################################################
         self.meta = None
         return dfeat
-
 
 
 class dropout(object):
@@ -287,7 +293,8 @@ class dropout(object):
         self.kept = None
         self.is_training = False
         self.rng = np.random.RandomState(seed)
-        assert keep_prob >= 0 and keep_prob <= 1, "Keep Prob = {} is not within [0, 1]".format(keep_prob)
+        assert keep_prob >= 0 and keep_prob <= 1, "Keep Prob = {} is not within [0, 1]".format(
+            keep_prob)
 
     def forward(self, feat, is_training=True, seed=None):
         if seed is not None:
@@ -315,7 +322,8 @@ class dropout(object):
         feat = self.meta
         dfeat = None
         if feat is None:
-            raise ValueError("No forward function called before for this module!")
+            raise ValueError(
+                "No forward function called before for this module!")
         #############################################################################
         # TODO: Implement the backward pass of Dropout                              #
         # Select gradients only from selected activations.                          #
@@ -360,7 +368,8 @@ class cross_entropy(object):
         logit = self.logit
         label = self.label
         if logit is None:
-            raise ValueError("No forward function called before for this module!")
+            raise ValueError(
+                "No forward function called before for this module!")
         dlogit = None
         #############################################################################
         # TODO: Implement the backward pass of an CE Loss                           #
@@ -387,6 +396,7 @@ def softmax(feat):
     #                             END OF YOUR CODE                              #
     #############################################################################
     return scores
+
 
 def reset_seed(seed):
     import random
