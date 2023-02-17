@@ -205,7 +205,6 @@ class fc(object):
         # corresponding name.                                                       #
         # Store the output gradients in the variable dfeat provided above.          #
         #############################################################################
-        print('backward of fcl')
         """
         NEEDS 
             input into that layer
@@ -217,7 +216,7 @@ class fc(object):
         """
         self.grads[self.b_name] = dprev
         self.grads[self.w_name] = (dprev @ feat).T
-        print(self.params[self.w_name].shape, dprev.shape)
+        #print(self.params[self.w_name].shape, dprev.shape)
         dfeat = dprev @ (self.params[self.w_name]).T
 
         #############################################################################
@@ -248,10 +247,10 @@ class gelu(object):
         
         temp_div = (2 / np.pi)**0.5 # scalar
         intermed_mat = feat + (0.044715 * (feat ** 3) )
-        print(intermed_mat.shape)
+        #print(intermed_mat.shape)
         final_mat = temp_div * intermed_mat
         final_mat = 1 + np.tanh(final_mat)
-        print(feat.shape, final_mat.shape)
+        #print(feat.shape, final_mat.shape)
        
         output = (0.5 * feat) * final_mat 
       
@@ -272,7 +271,11 @@ class gelu(object):
         # TODO: Implement the backward pass of GeLU                                 #
         # Store the output gradients in the variable dfeat provided above.          #
         #############################################################################
-        pass
+
+        x_cubed = feat ** 3
+        inner_term = (0.0356774 * x_cubed) + (0.797885 * feat)
+        d_gelu = ( 0.5 * np.tanh(inner_term) ) + 0.5 + ( (0.0535161 * x_cubed) + (0.398942 * feat) ) * (np.cosh(inner_term) ** -2)
+        dfeat = d_gelu * dprev
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -316,7 +319,7 @@ class dropout(object):
         # Store the mask in the variable kept provided above.                       #
         # Store the results in the variable output provided above.                  #
         #############################################################################
-        pass
+        
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
