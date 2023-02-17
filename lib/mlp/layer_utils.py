@@ -245,9 +245,16 @@ class gelu(object):
         # TODO: Implement the forward pass of GeLU                                  #
         # Store the results in the variable output provided above.                  #
         #############################################################################
-        temp_div = 2 / np.pi
-        output = (0.5 * feat)(1 +
-                              np.tanh(np.sqrt(temp_div(feat + (0.044715 * (feat*feat*feat))))))
+        
+        temp_div = (2 / np.pi)**0.5 # scalar
+        intermed_mat = feat + (0.044715 * (feat ** 3) )
+        print(intermed_mat.shape)
+        final_mat = temp_div * intermed_mat
+        final_mat = 1 + np.tanh(final_mat)
+        print(feat.shape, final_mat.shape)
+       
+        output = (0.5 * feat) * final_mat 
+      
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
