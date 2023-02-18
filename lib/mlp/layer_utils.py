@@ -320,6 +320,22 @@ class dropout(object):
         # Store the results in the variable output provided above.                  #
         #############################################################################
         
+        #print(feat.shape,self.is_training, self.keep_prob, (feat.shape[1],1))
+        mask = np.ones((feat.shape[1], 1))
+        if is_training and self.keep_prob != 0 :
+            #print(self.keep_prob)
+            mask = self.rng.random((feat.shape[1],1))
+            mask = np.ma.masked_where(self.keep_prob < mask , mask)
+            mask = np.where(np.ma.is_masked(mask), mask* 0, mask * 1)
+            #                            dropout coeff     *   makes it 1 
+            mask = np.where( mask != 0, (1/self.keep_prob) * (mask + (1 - mask)), mask * 1)
+            #print(mask[:5])
+            output = feat *  mask    
+        else: 
+            output = feat
+        
+        kept = mask
+       
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -339,7 +355,8 @@ class dropout(object):
         # Select gradients only from selected activations.                          #
         # Store the output gradients in the variable dfeat provided above.          #
         #############################################################################
-        pass
+        #print("self kept backprop is: ", self.kept)
+        dfeat = dprev *  (1/self.keep_prob)
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
