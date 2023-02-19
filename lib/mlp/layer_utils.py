@@ -383,7 +383,8 @@ class cross_entropy(object):
         # TODO: Implement the forward pass of an CE Loss                            #
         # Store the loss in the variable loss provided above.                       #
         #############################################################################
-        pass
+        
+        print(feat[0], logit, label)
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -418,7 +419,7 @@ def softmax(feat):
     # TODO: Implement the forward pass of a softmax function                    #
     # Return softmax values over the last dimension of feat.                    #
     #############################################################################
-    pass
+    scores = np.exp(feat) / sum(np.exp(feat))
     #############################################################################
     #                             END OF YOUR CODE                              #
     #############################################################################
