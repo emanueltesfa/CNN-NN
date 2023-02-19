@@ -39,6 +39,10 @@ class TestFCGeLU(Module):
     def __init__(self, keep_prob=0, dtype=np.float32, seed=None):
         self.net = sequential(
             ########## TODO: ##########
+            flatten(name="flatten"),
+            fc(15, 5, init_scale=0.02, name="fc"),
+            gelu(name='gelu')
+
             ########### END ###########
         )
 

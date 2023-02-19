@@ -117,7 +117,7 @@ class flatten(object):
         # Store the results in the variable self.meta provided above.               #
         #############################################################################
         output = feat.reshape(feat.shape[0], -1)
-        # print((output.shape))
+        #("output after flat: ", (output.shape))
 
         #############################################################################
         #                             END OF YOUR CODE                              #
@@ -136,7 +136,8 @@ class flatten(object):
         # You need to reshape (flatten) the input gradients and return.             #
         # Store the results in the variable dfeat provided above.                   #
         #############################################################################
-        dfeat = dprev.reshape(feat.shape[0], -1)
+        # print("feat shape backflat: ",feat.shape)
+        dfeat = dprev.reshape(feat.shape)
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -170,6 +171,9 @@ class fc(object):
 
     def forward(self, feat):
         output = None
+        #print("features shape is: ", len(feat.shape))
+        #print(feat.shape[-1] , self.input_dim)
+
         assert len(feat.shape) == 2 and feat.shape[-1] == self.input_dim, \
             "But got {} and {}".format(feat.shape, self.input_dim)
         #############################################################################
@@ -177,10 +181,9 @@ class fc(object):
         # Store the results in the variable output provided above.                  #
         #############################################################################
 
-        # print("features shape is: ", len(feat.shape))
         # print(self.input_dim)
         # print((self.params['fc_test_w']).shape)
-        output = feat @ self.params['fc_test_w'] + self.params['fc_test_b']
+        output = feat @ self.params[self.w_name] + self.params[self.b_name]
         # print(output.shape)
 
         #############################################################################
@@ -214,9 +217,11 @@ class fc(object):
                      grad[b]
                      output = 
         """
-        self.grads[self.b_name] = dprev
-        self.grads[self.w_name] = (dprev @ feat).T
-        #print(self.params[self.w_name].shape, dprev.shape)
+        
+        self.grads[self.b_name] = dprev.sum(0)
+        #print(dprev.shape, feat.shape)
+        self.grads[self.w_name] = feat.T @ dprev
+        #print(dprev.shape, self.params[self.w_name].shape)
         dfeat = dprev @ (self.params[self.w_name]).T
 
         #############################################################################
@@ -323,13 +328,11 @@ class dropout(object):
         #print(feat.shape,self.is_training, self.keep_prob, (feat.shape[1],1))
         mask = np.ones((feat.shape[1], 1))
         if is_training and self.keep_prob != 0 :
-            #print(self.keep_prob)
             mask = self.rng.random((feat.shape[1],1))
-            mask = np.ma.masked_where(self.keep_prob < mask , mask)
+            mask = np.ma.masked_where(self.keep_prob > mask , mask)
             mask = np.where(np.ma.is_masked(mask), mask* 0, mask * 1)
             #                            dropout coeff     *   makes it 1 
             mask = np.where( mask != 0, (1/self.keep_prob) * (mask + (1 - mask)), mask * 1)
-            #print(mask[:5])
             output = feat *  mask    
         else: 
             output = feat
@@ -384,7 +387,8 @@ class cross_entropy(object):
         # Store the loss in the variable loss provided above.                       #
         #############################################################################
         
-        print(feat[0], logit, label)
+        #print(feat[0], logit, label)
+        loss = np.sum([feat[i]*np.log(label[i]) for i in range(len(feat))])
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -419,7 +423,7 @@ def softmax(feat):
     # TODO: Implement the forward pass of a softmax function                    #
     # Return softmax values over the last dimension of feat.                    #
     #############################################################################
-    scores = np.exp(feat) / sum(np.exp(feat))
+    scores = np.exp(feat) / np.sum(np.exp(feat), axis=0)
     #############################################################################
     #                             END OF YOUR CODE                              #
     #############################################################################
