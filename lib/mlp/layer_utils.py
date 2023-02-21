@@ -386,9 +386,14 @@ class cross_entropy(object):
         # TODO: Implement the forward pass of an CE Loss                            #
         # Store the loss in the variable loss provided above.                       #
         #############################################################################
-        
-        #print(feat[0], logit, label)
-        loss = np.sum([feat[i]*np.log(label[i]) for i in range(len(feat))])
+        #print(logit)
+        print(feat.shape, logit.shape, label.shape)
+        N = label.shape[0]
+        #print(N)
+        #print(feat)
+
+        #ce_loss = - (1/N) * np.sum(label * np.log(logit) )
+       # print(ce_loss)
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -423,7 +428,15 @@ def softmax(feat):
     # TODO: Implement the forward pass of a softmax function                    #
     # Return softmax values over the last dimension of feat.                    #
     #############################################################################
-    scores = np.exp(feat) / np.sum(np.exp(feat), axis=0)
+    #print(( np.sum(np.exp(feat), axis=1)).shape)
+    """temp = ( np.sum(np.exp(feat), axis=1))
+    print(temp.shape)
+    temp2 = temp.reshape(-1, 1)
+    print(temp2.shape)
+    scores = np.exp(feat) / temp2"""
+
+    scores = (np.exp(feat)/(np.exp(feat).sum(1)).reshape(-1,1))
+    print("THIS WORKS")
     #############################################################################
     #                             END OF YOUR CODE                              #
     #############################################################################
