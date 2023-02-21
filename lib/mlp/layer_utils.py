@@ -214,8 +214,8 @@ class fc(object):
             deriv of wieghts
             deriv of bias v
             store in grad[w]
-                     grad[b]
-                     output = 
+            grad[b]
+            output = 
         """
         
         self.grads[self.b_name] = dprev.sum(0)
@@ -387,13 +387,19 @@ class cross_entropy(object):
         # Store the loss in the variable loss provided above.                       #
         #############################################################################
         #print(logit)
-        print(feat.shape, logit.shape, label.shape)
+        #print(feat.shape, logit.shape, label.shape)
         N = label.shape[0]
+
         #print(N)
         #print(feat)
+        #print(np.log(logit).shape)
 
-        #ce_loss = - (1/N) * np.sum(label * np.log(logit) )
-       # print(ce_loss)
+        one_hot = np.zeros((label.size, label.max() + 1))
+        one_hot[np.arange(label.size), label] = 1
+        #print("b.shape: ", b, "label: ", label.shape)
+        loss = - (1/N) * np.sum(one_hot * np.log(logit) )
+
+        #print(ce_loss)
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -412,7 +418,21 @@ class cross_entropy(object):
         # TODO: Implement the backward pass of an CE Loss                           #
         # Store the output gradients in the variable dlogit provided above.         #
         #############################################################################
-        pass
+        """
+        temp_label = np.zeros((label.size, label.max() + 1))
+        temp_label[np.arange(label.size), label] = 1
+
+        term_one = np.divide(logit,temp_label)
+        term_two = np.divide((1 - logit), (1 - temp_label))
+        dlogit = np.add(term_one, term_two)
+       
+        m = label.shape[0]
+        
+        logit[range(m), label] -= 1
+        dlogit = logit/m"""
+        
+
+       # dlogit = 
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -436,7 +456,7 @@ def softmax(feat):
     scores = np.exp(feat) / temp2"""
 
     scores = (np.exp(feat)/(np.exp(feat).sum(1)).reshape(-1,1))
-    print("THIS WORKS")
+    #print("THIS WORKS")
     #############################################################################
     #                             END OF YOUR CODE                              #
     #############################################################################
