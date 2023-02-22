@@ -393,10 +393,12 @@ class cross_entropy(object):
         #print(N)
         #print(feat)
         #print(np.log(logit).shape)
+        #print("logit second index size: ", logit.shape[1])
+        print(label)
 
         one_hot = np.zeros((label.size, label.max() + 1))
         one_hot[np.arange(label.size), label] = 1
-        #print("b.shape: ", b, "label: ", label.shape)
+        print("onehot.shape: ", one_hot.shape, "logit: ", logit.shape)
         loss = - (1/N) * np.sum(one_hot * np.log(logit) )
 
         #print(ce_loss)
@@ -425,11 +427,10 @@ class cross_entropy(object):
         term_one = np.divide(logit,temp_label)
         term_two = np.divide((1 - logit), (1 - temp_label))
         dlogit = np.add(term_one, term_two)
-       
-        m = label.shape[0]
+        """
         
-        logit[range(m), label] -= 1
-        dlogit = logit/m"""
+        logit[range(label.shape[0]), label] -= 1
+        dlogit = logit / label.shape[0]
         
 
        # dlogit = 
