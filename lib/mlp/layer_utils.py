@@ -333,7 +333,7 @@ class dropout(object):
             mask = np.where(np.ma.is_masked(mask), mask* 0, mask * 1)
             #                            dropout coeff     *   makes it 1 
             mask = np.where( mask != 0, (1/self.keep_prob) * (mask + (1 - mask)), mask * 1)
-            output = feat *  mask    
+            output = feat *  mask.T   
         else: 
             output = feat
         
@@ -359,7 +359,10 @@ class dropout(object):
         # Store the output gradients in the variable dfeat provided above.          #
         #############################################################################
         #print("self kept backprop is: ", self.kept)
-        dfeat = dprev *  (1/self.keep_prob)
+        if self.keep_prob != 0:
+            dfeat = dprev  * (self.kept).T
+        else:
+            dfeat = dprev * self.kept.T
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -394,11 +397,11 @@ class cross_entropy(object):
         #print(feat)
         #print(np.log(logit).shape)
         #print("logit second index size: ", logit.shape[1])
-        print(label)
+        #print(label)
 
-        one_hot = np.zeros((label.size, label.max() + 1))
+        one_hot = np.zeros((label.size, logit.shape[1]))
         one_hot[np.arange(label.size), label] = 1
-        print("onehot.shape: ", one_hot.shape, "logit: ", logit.shape)
+        #print("onehot.shape: ", one_hot.shape, "logit: ", logit.shape)
         loss = - (1/N) * np.sum(one_hot * np.log(logit) )
 
         #print(ce_loss)
