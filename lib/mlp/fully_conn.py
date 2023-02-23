@@ -6,6 +6,8 @@ from lib.mlp.layer_utils import *
 
 
 """ Super Class """
+
+
 class Module(object):
     def __init__(self):
         self.params = {}
@@ -35,6 +37,8 @@ class Module(object):
 
 
 """ Classes """
+
+
 class TestFCGeLU(Module):
     def __init__(self, keep_prob=0, dtype=np.float32, seed=None):
         self.net = sequential(
@@ -50,9 +54,9 @@ class SmallFullyConnectedNetwork(Module):
     def __init__(self, keep_prob=0, dtype=np.float32, seed=None):
         self.net = sequential(
             ########## TODO: ##########
-            fc( init_scale=0.02, name="fc2"),
+            fc(4, 30, init_scale=0.02, name="fc2"),
             gelu(name='gelu'),
-            fc( init_scale=0.02, name="fc3"),
+            fc(30, 7, init_scale=0.02, name="fc3"),
             ########### END ###########
         )
 
@@ -78,8 +82,10 @@ class TinyNet(Module):
         """ Some comments """
         self.net = sequential(
             ########## TODO: ##########
+
             ########### END ###########
         )
+
 
 class DropoutNetTest(Module):
     def __init__(self, keep_prob=0, dtype=np.float32, seed=None):
@@ -114,4 +120,3 @@ class FullyConnectedNetwork(Module):
             gelu(name="gelu5"),
             fc(100, 20, 0.1, name="fc6")
         )
-
