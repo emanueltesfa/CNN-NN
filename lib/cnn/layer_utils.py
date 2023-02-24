@@ -135,7 +135,7 @@ class ConvLayer2D(object):
                 output_shape[i] = int(new_output)
             else:
                 output_shape[i] = input_size[0]
-        output_shape[-1] = int(input_size[0] / 2)
+        output_shape[-1] = self.number_filters
                
         #############################################################################
         #                             END OF YOUR CODE                              #
@@ -155,20 +155,21 @@ class ConvLayer2D(object):
         # Store the results in the variable "output" provided above.                #
         #############################################################################
        
-        print(img.shape,"\n",  input_height, "\n",input_width, "\n",output_height, "\n",output_width)
-        print(" filter.shape: ", self.params[self.w_name].shape  )
-        output = np.zeros(shape=(1, output_height, output_width, self.number_filters) )
-        print("input shape: ", img.shape)
-        print("output shape ", output.shape)
-        for pixel_h in range(input_height - output_height):
-            for pixel_w in range(input_width - output_width): 
+        #print(img.shape,"\n",  input_height, "\n",input_width, "\n",output_height, "\n",output_width)
+        #print(" filter.shape: ", self.params[self.w_name].shape  )
+        output = np.zeros(shape=(img.shape[0], output_height, output_width, self.number_filters) )
+        #print("input shape: ", img.shape)
+        #print("output shape ", output.shape)
+        
+        for pixel_h in range( output_height):
+            for pixel_w in range( output_width): 
                 for filter in range(self.number_filters):
                     cropped_img = img[:, pixel_h * self.stride: self.kernel_size +  (pixel_h * self.stride) , pixel_w * self.stride: (pixel_w * self.stride) + self.kernel_size, :]
                     curr_filter = self.params[self.w_name][:,:,:,filter] # set to current filter spanning over image 
-                    
-                    #print("img at index: ", cropped_img )
-                    #print("curr filter: ", curr_filter)
-                    output[:, pixel_h, pixel_w, filter] = ( cropped_img * curr_filter).sum(axis=(1,2))
+
+                    #print("pixel hieght is: ", pixel_h, "pixel width: ", pixel_w, "img at index: ", cropped_img.shape )
+                    #print("curr filter: ", curr_filter.shape)
+                    output[:, pixel_h, pixel_w, filter] = ( cropped_img * curr_filter).sum(axis=(1, 2,3))
                 output[:, pixel_h, pixel_w, :] += self.params[self.b_name]
         
  
@@ -194,7 +195,7 @@ class ConvLayer2D(object):
         # Store the output gradients in the variable dimg provided above.           #
         #############################################################################
         
-        self.grads[self.b_name] = np.sum(dprev, axis=(0, 1, 2))
+        """self.grads[self.b_name] = np.sum(dprev, axis=(0, 1, 2))
     
         # Compute gradients with respect to the weights
         output_shape = self.get_output_size(img.shape)
@@ -219,7 +220,7 @@ class ConvLayer2D(object):
                 for filter in range(self.number_filters):
                     curr_filter = self.params[self.w_name][:, :, :, filter]
                     dimg[:, pixel_h * self.stride: (pixel_h * self.stride) + self.kernel_size, pixel_w * self.stride: (pixel_w * self.stride) + self.kernel_size, :] += np.expand_dims(curr_filter, axis=0) * np.expand_dims(dprev[:, pixel_h, pixel_w, filter], axis=(1, 2, 3))
-        
+        """
 
 
 
