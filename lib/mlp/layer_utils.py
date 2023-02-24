@@ -70,7 +70,8 @@ class sequential(object):
         for layer in self.layers:
             for n, v in layer.grads.items():
                 ######## TODO ########
-                pass
+                l1_reg = lam * np.sign(layer.weights[n])  # L1 regularization penalty term
+                layer.grads[n] = v + l1_reg 
                 ######## END  ########
 
     def apply_l2_regularization(self, lam):
@@ -80,7 +81,8 @@ class sequential(object):
         for layer in self.layers:
             for n, v in layer.grads.items():
                 ######## TODO ########
-                pass
+                l2_reg = lam * layer.grads[n]  # L2 regularization penalty term
+                layer.grads[n] = v + l2_reg 
                 ######## END  ########
 
     def load(self, pretrained):

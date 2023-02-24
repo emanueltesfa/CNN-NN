@@ -127,7 +127,16 @@ class ConvLayer2D(object):
         # TODO: Implement the calculation to find the output size given the         #
         # parameters of this convolutional layer.                                   #
         #############################################################################
-        pass
+        #print(input_size)
+        for i in range(len(output_shape)):
+            if i != 0:
+                #print(input)
+                new_output = ( (input_size[i] + (2 * self.padding) - self.kernel_size ) / self.stride) + 1
+                output_shape[i] = int(new_output)
+            else:
+                output_shape[i] = input_size[0]
+        output_shape[-1] = int(input_size[0] / 2)
+               
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -145,7 +154,24 @@ class ConvLayer2D(object):
         # TODO: Implement the forward pass of a single convolutional layer.       #
         # Store the results in the variable "output" provided above.                #
         #############################################################################
-        pass
+       
+        print(img.shape,"\n",  input_height, "\n",input_width, "\n",output_height, "\n",output_width)
+        print(" filter.shape: ", self.params[self.w_name].shape  )
+        output = np.zeros(shape=(1, output_height, output_width, self.number_filters) )
+        print("input shape: ", img.shape)
+        print("output shape ", output.shape)
+        for pixel_h in range(input_height - output_height):
+            for pixel_w in range(input_width - output_width): 
+                for filter in range(self.number_filters):
+                    cropped_img = img[:, pixel_h * self.stride: self.kernel_size +  (pixel_h * self.stride) , pixel_w * self.stride: (pixel_w * self.stride) + self.kernel_size, :]
+                    curr_filter = self.params[self.w_name][:,:,:,filter] # set to current filter spanning over image 
+                    
+                    #print("img at index: ", cropped_img )
+                    #print("curr filter: ", curr_filter)
+                    output[:, pixel_h, pixel_w, filter] = ( cropped_img * curr_filter).sum(axis=(1,2))
+                output[:, pixel_h, pixel_w, :] += self.params[self.b_name]
+        
+ 
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -167,7 +193,36 @@ class ConvLayer2D(object):
         # corresponding name.                                                       #
         # Store the output gradients in the variable dimg provided above.           #
         #############################################################################
-        pass
+        
+        self.grads[self.b_name] = np.sum(dprev, axis=(0, 1, 2))
+    
+        # Compute gradients with respect to the weights
+        output_shape = self.get_output_size(img.shape)
+        _, input_height, input_width, _ = img.shape
+        _, output_height, output_width, _ = output_shape
+        
+        self.grads[self.w_name] = np.zeros(self.params[self.w_name].shape)
+        
+        for pixel_h in range(input_height - output_height):
+            for pixel_w in range(input_width - output_width):
+                for filter in range(self.number_filters):
+                    cropped_img = img[:, pixel_h * self.stride: self.kernel_size + (pixel_h * self.stride), pixel_w * self.stride: (pixel_w * self.stride) + self.kernel_size, :]
+                    curr_filter = self.params[self.w_name][:, :, :, filter]
+                    
+                    self.grads[self.w_name][:, :, :, filter] += np.sum(np.expand_dims(cropped_img, axis=-1) * np.expand_dims(dprev[:, pixel_h, pixel_w, filter], axis=(1, 2, 3)), axis=0)
+        
+        # Compute gradients with respect to the input
+        dimg = np.zeros(img.shape)
+        
+        for pixel_h in range(input_height - output_height):
+            for pixel_w in range(input_width - output_width):
+                for filter in range(self.number_filters):
+                    curr_filter = self.params[self.w_name][:, :, :, filter]
+                    dimg[:, pixel_h * self.stride: (pixel_h * self.stride) + self.kernel_size, pixel_w * self.stride: (pixel_w * self.stride) + self.kernel_size, :] += np.expand_dims(curr_filter, axis=0) * np.expand_dims(dprev[:, pixel_h, pixel_w, filter], axis=(1, 2, 3))
+        
+
+
+
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
