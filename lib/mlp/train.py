@@ -6,6 +6,7 @@ from lib.mlp.layer_utils import *
 from lib.optim import *
 from tqdm import tqdm
 
+
 class DataLoader(object):
     """
     Data loader class.
@@ -15,6 +16,7 @@ class DataLoader(object):
     - labels: Array of labels, of shape (batch_size,)
     - batch_size: The size of each returned minibatch
     """
+
     def __init__(self, data, labels, batch_size):
         self.data = data
         self.labels = labels
@@ -81,6 +83,8 @@ def compute_acc(model, data, labels, num_samples=None, batch_size=100):
 
 
 """ Some comments """
+
+
 def train_net(data, model, loss_func, optimizer, batch_size, max_epochs,
               lr_decay=1.0, lr_decay_every=1000, show_every=10, verbose=False,
               regularization="none", reg_lambda=0.0):
@@ -130,18 +134,18 @@ def train_net(data, model, loss_func, optimizer, batch_size, max_epochs,
 
     # Compute the maximum iterations and iterations per epoch
     iters_per_epoch = int(max(data_train.shape[0] / batch_size, 1))
-    max_iters = int(iters_per_epoch  * max_epochs)
+    max_iters = int(iters_per_epoch * max_epochs)
 
     # Start the training
     for epoch in range(max_epochs):
         # Compute the starting iteration and ending iteration for current epoch
         iter_start = epoch * iters_per_epoch
-        iter_end   = (epoch + 1) * iters_per_epoch
+        iter_end = (epoch + 1) * iters_per_epoch
 
         # Decay the learning rate every specified epochs
         if epoch % lr_decay_every == 0 and epoch > 0:
             optimizer.lr = optimizer.lr * lr_decay
-            print ("Decaying learning rate of the optimizer to {}".format(optimizer.lr))
+            print("Decaying learning rate of the optimizer to {}".format(optimizer.lr))
 
         # Main training loop
         for iter in tqdm(range(iter_start, iter_end)):
@@ -155,29 +159,28 @@ def train_net(data, model, loss_func, optimizer, batch_size, max_epochs,
             #############################################################################
             #print(data_batch.shape, labels_batch.shape)
 
-
             scores = model.forward(feat=data_batch)
-            
+
             loss = loss_func.forward(scores, labels_batch)
-            print(scores.shape, loss.shape)
+            print(scores.shape, labels_batch.shape)
             # Regularization
-            #model.sequential.apply_l2_regularization(reg_lambda)
-            
-            if np.random.randint(2, size=1) == 1:
+            # model.sequential.apply_l2_regularization(reg_lambda)
+
+            """if np.random.randint(2, size=1) == 1:
                 print("RAND IS 1")
-                loss +=  model.net.apply_l2_regularization(reg_lambda)
+                #loss +=  model.net.apply_l2_regularization(reg_lambda)
             else:
                 print("RAND IS 0")
-                loss += model.net.apply_l2_regularization(reg_lambda)
-
+                # loss += model.net.apply_l2_regularization(reg_lambda)
+"""
             # Backward pass and update parameters
-            #model.net.zero_grad()
+            # model.net.zero_grad()
             loss2 = loss_func.backward()
+            print("LOSS2: ", loss2.shape)
             optimizer.step()
 
             # Store the loss to loss_hist
             loss_hist.append(loss.item())
-
 
             #############################################################################
             #                             END OF YOUR CODE                              #
@@ -187,7 +190,8 @@ def train_net(data, model, loss_func, optimizer, batch_size, max_epochs,
             if verbose and iter % show_every == 0:
                 last_losses = loss_hist[-show_every:]
                 avg_loss = sum(last_losses)/len(last_losses)
-                print ("(Iteration {} / {}) Average loss: {}".format(iter+1, max_iters, avg_loss))
+                print(
+                    "(Iteration {} / {}) Average loss: {}".format(iter+1, max_iters, avg_loss))
 
         # End of epoch, compute the accuracies
         train_acc = 0
@@ -197,7 +201,7 @@ def train_net(data, model, loss_func, optimizer, batch_size, max_epochs,
         # compute_acc method, store the results to train_acc and val_acc,           #
         # respectively                                                              #
         #############################################################################
-        
+
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -217,7 +221,7 @@ def train_net(data, model, loss_func, optimizer, batch_size, max_epochs,
 
         # Show the training accuracies
         if verbose:
-            print ("(Epoch {} / {}) Training Accuracy: {}, Validation Accuracy: {}".format(
-            epoch+1, max_epochs, train_acc, val_acc))
+            print("(Epoch {} / {}) Training Accuracy: {}, Validation Accuracy: {}".format(
+                epoch+1, max_epochs, train_acc, val_acc))
 
     return opt_params, loss_hist, train_acc_hist, val_acc_hist

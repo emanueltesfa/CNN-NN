@@ -70,8 +70,7 @@ class sequential(object):
         for layer in self.layers:
             for n, v in layer.grads.items():
                 ######## TODO ########
-                l1_reg = lam * np.sign(layer.weights[n])  # L1 regularization penalty term
-                layer.grads[n] = v + l1_reg 
+                layer.grads[n] = np.sum(np.abs(v)) * lam
                 ######## END  ########
 
     def apply_l2_regularization(self, lam):
@@ -81,8 +80,7 @@ class sequential(object):
         for layer in self.layers:
             for n, v in layer.grads.items():
                 ######## TODO ########
-                l2_reg = lam * layer.grads[n]  # L2 regularization penalty term
-                layer.grads[n] = v + l2_reg 
+                layer.grads[n] = np.sum(np.pow(v, 2)) * lam
                 ######## END  ########
 
     def load(self, pretrained):
@@ -219,7 +217,7 @@ class fc(object):
             grad[b]
             output = 
         """
-        
+
         self.grads[self.b_name] = dprev.sum(0)
         #print(dprev.shape, feat.shape)
         self.grads[self.w_name] = feat.T @ dprev
@@ -251,16 +249,16 @@ class gelu(object):
         # TODO: Implement the forward pass of GeLU                                  #
         # Store the results in the variable output provided above.                  #
         #############################################################################
-        
-        temp_div = (2 / np.pi)**0.5 # scalar
-        intermed_mat = feat + (0.044715 * (feat ** 3) )
-        #print(intermed_mat.shape)
+
+        temp_div = (2 / np.pi)**0.5  # scalar
+        intermed_mat = feat + (0.044715 * (feat ** 3))
+        # print(intermed_mat.shape)
         final_mat = temp_div * intermed_mat
         final_mat = 1 + np.tanh(final_mat)
         #print(feat.shape, final_mat.shape)
-       
-        output = (0.5 * feat) * final_mat 
-      
+
+        output = (0.5 * feat) * final_mat
+
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -281,7 +279,8 @@ class gelu(object):
 
         x_cubed = feat ** 3
         inner_term = (0.0356774 * x_cubed) + (0.797885 * feat)
-        d_gelu = ( 0.5 * np.tanh(inner_term) ) + 0.5 + ( (0.0535161 * x_cubed) + (0.398942 * feat) ) * (np.cosh(inner_term) ** -2)
+        d_gelu = (0.5 * np.tanh(inner_term)) + 0.5 + ((0.0535161 *
+                                                       x_cubed) + (0.398942 * feat)) * (np.cosh(inner_term) ** -2)
         dfeat = d_gelu * dprev
         #############################################################################
         #                             END OF YOUR CODE                              #
@@ -326,21 +325,22 @@ class dropout(object):
         # Store the mask in the variable kept provided above.                       #
         # Store the results in the variable output provided above.                  #
         #############################################################################
-        
+
         #print(feat.shape,self.is_training, self.keep_prob, (feat.shape[1],1))
         mask = np.ones((feat.shape[1], 1))
-        if is_training and self.keep_prob != 0 :
-            mask = self.rng.random((feat.shape[1],1))
-            mask = np.ma.masked_where(self.keep_prob > mask , mask)
-            mask = np.where(np.ma.is_masked(mask), mask* 0, mask * 1)
-            #                            dropout coeff     *   makes it 1 
-            mask = np.where( mask != 0, (1/self.keep_prob) * (mask + (1 - mask)), mask * 1)
-            output = feat *  mask.T   
-        else: 
+        if is_training and self.keep_prob != 0:
+            mask = self.rng.random((feat.shape[1], 1))
+            mask = np.ma.masked_where(self.keep_prob > mask, mask)
+            mask = np.where(np.ma.is_masked(mask), mask * 0, mask * 1)
+            #                            dropout coeff     *   makes it 1
+            mask = np.where(mask != 0, (1/self.keep_prob)
+                            * (mask + (1 - mask)), mask * 1)
+            output = feat * mask.T
+        else:
             output = feat
-        
+
         kept = mask
-       
+
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -362,7 +362,7 @@ class dropout(object):
         #############################################################################
         #print("self kept backprop is: ", self.kept)
         if self.keep_prob != 0:
-            dfeat = dprev  * (self.kept).T
+            dfeat = dprev * (self.kept).T
         else:
             dfeat = dprev * self.kept.T
         #############################################################################
@@ -391,22 +391,22 @@ class cross_entropy(object):
         # TODO: Implement the forward pass of an CE Loss                            #
         # Store the loss in the variable loss provided above.                       #
         #############################################################################
-        #print(logit)
+        # print(logit)
         #print(feat.shape, logit.shape, label.shape)
         N = label.shape[0]
 
-        #print(N)
-        #print(feat)
-        #print(np.log(logit).shape)
+        # print(N)
+        # print(feat)
+        # print(np.log(logit).shape)
         #print("logit second index size: ", logit.shape[1])
-        #print(label)
+        # print(label)
 
         one_hot = np.zeros((label.size, logit.shape[1]))
         one_hot[np.arange(label.size), label] = 1
         #print("onehot.shape: ", one_hot.shape, "logit: ", logit.shape)
-        loss = - (1/N) * np.sum(one_hot * np.log(logit) )
+        loss = - (1/N) * np.sum(one_hot * np.log(logit))
 
-        #print(ce_loss)
+        # print(ce_loss)
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -433,12 +433,11 @@ class cross_entropy(object):
         term_two = np.divide((1 - logit), (1 - temp_label))
         dlogit = np.add(term_one, term_two)
         """
-        
+
         logit[range(label.shape[0]), label] -= 1
         dlogit = logit / label.shape[0]
-        
 
-       # dlogit = 
+       # dlogit =
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -461,7 +460,7 @@ def softmax(feat):
     print(temp2.shape)
     scores = np.exp(feat) / temp2"""
 
-    scores = (np.exp(feat)/(np.exp(feat).sum(1)).reshape(-1,1))
+    scores = (np.exp(feat)/(np.exp(feat).sum(1)).reshape(-1, 1))
     #print("THIS WORKS")
     #############################################################################
     #                             END OF YOUR CODE                              #
