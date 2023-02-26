@@ -157,21 +157,25 @@ class ConvLayer2D(object):
        
         #print(img.shape,"\n",  input_height, "\n",input_width, "\n",output_height, "\n",output_width)
         #print(" filter.shape: ", self.params[self.w_name].shape  )
-        output = np.zeros(shape=(img.shape[0], output_height, output_width, self.number_filters) )
-        #print("input shape: ", img.shape)
-        #print("output shape ", output.shape)
-        
-        for pixel_h in range( output_height):
-            for pixel_w in range( output_width): 
-                for filter in range(self.number_filters):
-                    cropped_img = img[:, pixel_h * self.stride: self.kernel_size +  (pixel_h * self.stride) , pixel_w * self.stride: (pixel_w * self.stride) + self.kernel_size, :]
-                    curr_filter = self.params[self.w_name][:,:,:,filter] # set to current filter spanning over image 
+        stack_img = img.shape[0]
+        img_pad = np.pad(img, ((0,), (self.padding,), (self.padding,), (0,)), mode='constant')
 
-                    #print("pixel hieght is: ", pixel_h, "pixel width: ", pixel_w, "img at index: ", cropped_img.shape )
-                    #print("curr filter: ", curr_filter.shape)
-                    output[:, pixel_h, pixel_w, filter] = ( cropped_img * curr_filter).sum(axis=(1, 2,3))
-                output[:, pixel_h, pixel_w, :] += self.params[self.b_name]
+        output = np.zeros(shape=(stack_img, output_height, output_width, self.number_filters) )
+        #print("input shape: ", img.shape)
+       #print("output shape[0] ", output.shape[0])
         
+        for batch in range (stack_img):
+            for pixel_h in range( output_height):
+                for pixel_w in range( output_width): 
+                    for filter in range(self.number_filters):
+                        cropped_img = img_pad[:, pixel_h * self.stride: self.kernel_size +  (pixel_h * self.stride) , pixel_w * self.stride: (pixel_w * self.stride) + self.kernel_size, :]
+                        curr_filter = self.params[self.w_name][:,:,:,filter] # set to current filter spanning over image 
+
+                        #print("pixel hieght is: ", pixel_h, "pixel width: ", pixel_w, "img at index: ", cropped_img.shape )
+                        #print("curr filter: ", curr_filter.shape)
+                        output[batch, pixel_h, pixel_w, filter] = ( cropped_img * curr_filter).sum(axis=(0,1, 2,3))
+                    output[batch, pixel_h, pixel_w, :] += self.params[self.b_name]
+            
  
         #############################################################################
         #                             END OF YOUR CODE                              #
@@ -195,7 +199,7 @@ class ConvLayer2D(object):
         # Store the output gradients in the variable dimg provided above.           #
         #############################################################################
         
-        """self.grads[self.b_name] = np.sum(dprev, axis=(0, 1, 2))
+        self.grads[self.b_name] = np.sum(dprev, axis=(0, 1, 2))
     
         # Compute gradients with respect to the weights
         output_shape = self.get_output_size(img.shape)
@@ -211,7 +215,7 @@ class ConvLayer2D(object):
                     curr_filter = self.params[self.w_name][:, :, :, filter]
                     
                     self.grads[self.w_name][:, :, :, filter] += np.sum(np.expand_dims(cropped_img, axis=-1) * np.expand_dims(dprev[:, pixel_h, pixel_w, filter], axis=(1, 2, 3)), axis=0)
-        
+        print("backward CL")
         # Compute gradients with respect to the input
         dimg = np.zeros(img.shape)
         
@@ -220,7 +224,7 @@ class ConvLayer2D(object):
                 for filter in range(self.number_filters):
                     curr_filter = self.params[self.w_name][:, :, :, filter]
                     dimg[:, pixel_h * self.stride: (pixel_h * self.stride) + self.kernel_size, pixel_w * self.stride: (pixel_w * self.stride) + self.kernel_size, :] += np.expand_dims(curr_filter, axis=0) * np.expand_dims(dprev[:, pixel_h, pixel_w, filter], axis=(1, 2, 3))
-        """
+        
 
 
 
@@ -249,7 +253,33 @@ class MaxPoolingLayer(object):
         # TODO: Implement the forward pass of a single maxpooling layer.            #
         # Store your results in the variable "output" provided above.               #
         #############################################################################
-        pass
+        #print("img shape: ", img.shape, "pool_size: ", self.pool_size, "Stride: ", self.stride)
+        pool_s = self.pool_size
+        out_width = int ( np.floor( (img.shape[2] - self.pool_size) / 2) + 1 )
+        out_height = int ( np.floor( (img.shape[1] - self.pool_size) / 2) + 1 )
+
+        output = np.zeros((img.shape[0], out_height, out_width,  img.shape[-1]))
+        switches = np.zeros_like(output, dtype=np.int64)
+        for p_h in range(out_height):
+            for p_w in range(out_height): 
+                pool_window = img[:,
+                                   p_h * self.stride: pool_s + p_h * self.stride ,   
+                                   p_w * self.stride: pool_s + p_w * self.stride, 
+                                   :]
+                #max_idxs = np.argmax(pool_window, axis=(1, 2))  
+
+                output[:, p_h, p_w, :] = np.max(pool_window, axis=(1,2))
+                #switches[:, p_h, p_w, :] = np.ravel_multi_index(max_idxs.T, pool_window.shape[:-1]) 
+                #print(f'Element[{p_h}{p_w}] ')
+                """
+                max = None
+                for elem in pool_window.flat:
+                    if elem >= max :
+                        max = elem
+                output[:, p_h, p_w, :] = max
+                    print(f'Element[{p_h}{p_w}]: {elem}')"""
+                
+
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -269,7 +299,22 @@ class MaxPoolingLayer(object):
         # Store the computed gradients in self.grads with corresponding name.       #
         # Store the output gradients in the variable dimg provided above.           #
         #############################################################################
-        pass
+
+        d_tensor =  np.zeros_like(img)
+        print(d_tensor.shape)
+
+        for batch in range(img.shape[0]):
+            for p_h in range(h_out):
+                for p_w in range(w_out):
+                    for channel in range(img.shape[-1]):
+                        pool_window = img[batch,
+                                        p_h * self.stride  :  h_pool +  p_h * self.stride,
+                                        p_w * self.stride  :  w_pool +  p_w * self.stride,
+                                        channel]
+                        max_in = np.unravel_index(np.argmax(pool_window), pool_window.shape)
+                        dimg[batch, p_h * self.stride + max_in[0], p_w * self.stride + max_in[1], channel] += dprev[batch, p_h, p_w, channel]
+      
+
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
