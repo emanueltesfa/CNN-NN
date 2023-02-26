@@ -198,36 +198,35 @@ class ConvLayer2D(object):
         # corresponding name.                                                       #
         # Store the output gradients in the variable dimg provided above.           #
         #############################################################################
-        
-        self.grads[self.b_name] = np.sum(dprev, axis=(0, 1, 2))
-    
-        # Compute gradients with respect to the weights
-        output_shape = self.get_output_size(img.shape)
         _, input_height, input_width, _ = img.shape
-        _, output_height, output_width, _ = output_shape
-        
-        self.grads[self.w_name] = np.zeros(self.params[self.w_name].shape)
-        
-        for pixel_h in range(input_height - output_height):
-            for pixel_w in range(input_width - output_width):
-                for filter in range(self.number_filters):
-                    cropped_img = img[:, pixel_h * self.stride: self.kernel_size + (pixel_h * self.stride), pixel_w * self.stride: (pixel_w * self.stride) + self.kernel_size, :]
-                    curr_filter = self.params[self.w_name][:, :, :, filter]
-                    
-                    self.grads[self.w_name][:, :, :, filter] += np.sum(np.expand_dims(cropped_img, axis=-1) * np.expand_dims(dprev[:, pixel_h, pixel_w, filter], axis=(1, 2, 3)), axis=0)
-        print("backward CL")
-        # Compute gradients with respect to the input
-        dimg = np.zeros(img.shape)
-        
-        for pixel_h in range(input_height - output_height):
-            for pixel_w in range(input_width - output_width):
-                for filter in range(self.number_filters):
-                    curr_filter = self.params[self.w_name][:, :, :, filter]
-                    dimg[:, pixel_h * self.stride: (pixel_h * self.stride) + self.kernel_size, pixel_w * self.stride: (pixel_w * self.stride) + self.kernel_size, :] += np.expand_dims(curr_filter, axis=0) * np.expand_dims(dprev[:, pixel_h, pixel_w, filter], axis=(1, 2, 3))
-        
+        _, output_height, output_width, _ = dprev.shape
+        dimg = np.zeros_like(img)
+        padded_dprev = np.pad(dprev, ((0,), (self.kernel_size-1,), (self.kernel_size-1,), (0,)), mode='constant')
+        flipped_filters = np.flip(self.params[self.w_name], axis=(0,1))
+        for batch in range(dprev.shape[0]):
+            for channel in range(self.input_channels):
+                for h in range(input_height):
+                    for w in range(input_width):
+                        h_start = h * self.stride
+                        h_end = h_start + self.kernel_size
+                        w_start = w * self.stride
+                        w_end = w_start + self.kernel_size
+                        dimg[batch, h, w, channel] = np.sum(padded_dprev[batch, h_start:h_end, w_start:w_end, :] * flipped_filters[:, :, channel, :], axis=(0,2))
 
+        # Compute the gradient with respect to the weights
+        dw = np.zeros_like(self.params[self.w_name])
+        padded_img = np.pad(img, ((0,), (self.kernel_size-1,), (self.kernel_size-1,), (0,)), mode='constant')
+        for batch in range(dprev.shape[0]):
+            for h in range(output_height):
+                for w in range(output_width):
+                    dw += padded_img[batch, h:h+self.kernel_size, w:w+self.kernel_size, :, np.newaxis] * \
+                        dprev[batch, h, w, :][np.newaxis, np.newaxis, np.newaxis, :]
 
+        # Compute the gradient with respect to the biases
+        self.grads[self.b_name] =  np.sum(dprev, axis=(0,1,2))
 
+        # Store the computed gradients in the self.grads dictionary
+        self.grads[self.w_name] = dw
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
