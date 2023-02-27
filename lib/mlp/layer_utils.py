@@ -70,7 +70,7 @@ class sequential(object):
         for layer in self.layers:
             for n, v in layer.grads.items():
                 ######## TODO ########
-                layer.grads[n] = np.sum(np.abs(v)) * lam
+                layer.grads[n] += np.sum(np.abs(v)) * lam
                 ######## END  ########
 
     def apply_l2_regularization(self, lam):
@@ -80,7 +80,7 @@ class sequential(object):
         for layer in self.layers:
             for n, v in layer.grads.items():
                 ######## TODO ########
-                layer.grads[n] = np.sum(np.pow(v, 2)) * lam
+                layer.grads[n] += np.sum(np.power(v, 2)) * lam
                 ######## END  ########
 
     def load(self, pretrained):

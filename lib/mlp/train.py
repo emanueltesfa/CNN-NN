@@ -162,23 +162,20 @@ def train_net(data, model, loss_func, optimizer, batch_size, max_epochs,
             scores = model.forward(feat=data_batch)
 
             loss = loss_func.forward(scores, labels_batch)
-            print(scores.shape, labels_batch.shape)
+            #print("forard loss: ", loss)
+            #print(scores.shape, labels_batch.shape)
+
             # Regularization
             # model.sequential.apply_l2_regularization(reg_lambda)
-
-            """if np.random.randint(2, size=1) == 1:
-                print("RAND IS 1")
-                #loss +=  model.net.apply_l2_regularization(reg_lambda)
-            else:
-                print("RAND IS 0")
-                # loss += model.net.apply_l2_regularization(reg_lambda)
-"""
+            
+           
             # Backward pass and update parameters
             # model.net.zero_grad()
-            loss2 = loss_func.backward()
-            print("LOSS2: ", loss2.shape)
+            
+            d_loss = loss_func.backward()
+            model.backward(d_loss, regularization=regularization)
+            #print("LOSS2: ", d_loss.shape)
             optimizer.step()
-
             # Store the loss to loss_hist
             loss_hist.append(loss.item())
 
@@ -201,7 +198,8 @@ def train_net(data, model, loss_func, optimizer, batch_size, max_epochs,
         # compute_acc method, store the results to train_acc and val_acc,           #
         # respectively                                                              #
         #############################################################################
-
+        train_acc = compute_acc(model, data_train, labels_train)
+        val_acc = compute_acc(model, data_val, labels_val)
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -214,7 +212,8 @@ def train_net(data, model, loss_func, optimizer, batch_size, max_epochs,
             # TODO: Save the optimal parameters to opt_params variable by name using    #
             # model.net.gather_params method                                            #
             #############################################################################
-            pass
+            model.net.gather_params()
+            opt_params = model.net.params
             #############################################################################
             #                             END OF YOUR CODE                              #
             #############################################################################
